@@ -9,7 +9,7 @@
  
 (Im lazy and so this code only works with the AP's provided (you have to change the values of the nested if statements at the bottom of loop for it to work in other scenarios) and if it is compiled on a windows 10 machine with a 5 character long user)
  
- 
+ ## SPACEHUHN'S SOCIALS
  
 <p align="center">
 🐦 <a href="https://twitter.com/spacehuhn">Twitter</a>
@@ -30,14 +30,6 @@
 If you have trouble uploading, have a look at the [installation guide](https://github.com/spacehuhn/esp8266_deauther/wiki/Installation#drivers-and-com-port) on the Deauther Wiki. There you will also find drivers for the most common USB-Serial chips.  
 Again, this is for the Deauther and not for this project, but the hardware (ESP8266) is the same and you will find a lot of trouble-shooting info on the Wiki there! :)  
 
-Additionally, here's a video tutorial :)  
-[![$5 WiFi Spammer](https://img.youtube.com/vi/Zq7QNpPxCqE/0.jpg)](https://www.youtube.com/watch?v=Zq7QNpPxCqE)
-
 ## License
 
 This project is licensed under the MIT License - see the [license file](LICENSE) file for details
-
-## Sources
- 
-The 50 default SSIDs are from: http://www.makeuseof.com/tag/50-funny-wi-fi-names-network-ssid/  
-More info about beacon frames: https://mrncciew.com/2014/10/08/802-11-mgmt-beacon-frame/  
