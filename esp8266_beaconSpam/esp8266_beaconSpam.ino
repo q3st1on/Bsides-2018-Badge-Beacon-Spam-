@@ -9,6 +9,28 @@
 const uint8_t channels[] = {1, 6, 11}; // used Wi-Fi channels (available: 1-14)
 const bool wpa2 = false; // WPA2 networks
 const bool appendSpaces = true; // makes all SSIDs 32 characters long to improve performance
+//Colours
+#define WHITE 0xFFFF
+#define BLACK 0x0000
+#define BLUE 0x001F
+#define RED 0xF800
+#define GREEN 0x07E0
+#define CYAN 0x07FF
+#define MAGENTA 0xF81F
+#define YELLOW 0xFFE0
+
+
+//Hardware
+#define CS D4
+#include <SPI.h>
+#include <TFT_ILI9163C.h>
+#define DC D2
+#define RST D1
+#define TFT_BLACK 0
+TFT_ILI9163C tft = TFT_ILI9163C(CS, RST, DC);
+int ledPin = D8;           // the PWM pin the LED is attached to
+int brightness = 0;    // how bright the LED is
+int fadeAmount = 5;    // how many points to fade the LED by
 
 /*
   SSIDs:
@@ -18,55 +40,31 @@ const bool appendSpaces = true; // makes all SSIDs 32 characters long to improve
 */
 const char ssids[] PROGMEM = {
   "Mom Use This One\n"
-  "Abraham Linksys\n"
-  "Benjamin FrankLAN\n"
   "Martin Router King\n"
-  "John Wilkes Bluetooth\n"
-  "Pretty Fly for a Wi-Fi\n"
   "Bill Wi the Science Fi\n"
-  "I Believe Wi Can Fi\n"
-  "Tell My Wi-Fi Love Her\n"
-  "No More Mister Wi-Fi\n"
-  "LAN Solo\n"
-  "The LAN Before Time\n"
   "Silence of the LANs\n"
-  "House LANister\n"
-  "Winternet Is Coming\n"
-  "Ping’s Landing\n"
-  "The Ping in the North\n"
-  "This LAN Is My LAN\n"
-  "Get Off My LAN\n"
-  "The Promised LAN\n"
   "The LAN Down Under\n"
-  "FBI Surveillance Van 4\n"
+  "ASIO Surveillance Van 4\n"
+  "ASIO Surveillance Van 3\n"
+  "ASIO Surveillance Van 2\n"
+  "ASIO Surveillance Van 1\n"
+  "ASIO Surveillance Van 0\n"
   "Area 51 Test Site\n"
-  "Drive-By Wi-Fi\n"
-  "Planet Express\n"
-  "Wu Tang LAN\n"
   "Darude LANstorm\n"
-  "Never Gonna Give You Up\n"
-  "Hide Yo Kids, Hide Yo Wi-Fi\n"
-  "Loading…\n"
-  "Searching…\n"
-  "VIRUS.EXE\n"
-  "Virus-Infected Wi-Fi\n"
-  "Starbucks Wi-Fi\n"
-  "Text ###-#### for Password\n"
-  "Yell ____ for Password\n"
   "The Password Is 1234\n"
-  "Free Public Wi-Fi\n"
   "No Free Wi-Fi Here\n"
   "Get Your Own Damn Wi-Fi\n"
   "It Hurts When IP\n"
-  "Dora the Internet Explorer\n"
   "404 Wi-Fi Unavailable\n"
-  "Porque-Fi\n"
-  "Titanic Syncing\n"
-  "Test Wi-Fi Please Ignore\n"
+  "Put your POLICE up its the HANDS\n"
   "Drop It Like It’s Hotspot\n"
   "Life in the Fast LAN\n"
-  "The Creep Next Door\n"
-  "Ye Olde Internet\n"
+  "My BLT-drive went AWOL\n"
+  "H4ck th3 pl4n3t\n"
+  "1fy0uc4nr34dth1sy0un33dt0g3tl41d\n"
+  "1fyuc4nr34dth1syu'lln3v3rg3tl41d\n"
+  "Bsides per ftw\n"
+  "Boot Up or Shut Up!\n"
 };
 // ==================== //
 
@@ -147,11 +145,11 @@ uint8_t beaconPacket[109] = {
 
 // goes to next channel
 void nextChannel() {
-  if(sizeof(channels) > 1){
+  if (sizeof(channels) > 1) {
     uint8_t ch = channels[channelIndex];
     channelIndex++;
     if (channelIndex > sizeof(channels)) channelIndex = 0;
-  
+
     if (ch != wifi_channel && ch >= 1 && ch <= 14) {
       wifi_channel = ch;
       wifi_set_channel(wifi_channel);
@@ -166,9 +164,14 @@ void randomMac() {
 }
 
 void setup() {
+
+  tft.begin();
+  tft.setRotation(0);  // 0 & 2 Portrait. 1 & 3 landscape
+  tft.fillScreen(TFT_BLACK);
   // create empty SSID
   for (int i = 0; i < 32; i++)
     emptySSID[i] = ' ';
+
 
   // for random generator
   randomSeed(os_random());
@@ -203,17 +206,30 @@ void setup() {
   Serial.println("SSIDs:");
   int i = 0;
   int len = sizeof(ssids);
-  while(i < len){
+  while (i < len) {
     Serial.print((char)pgm_read_byte(ssids + i));
+    //tft.setCursor(10, 10);
+    //  tft.setTextColor(YELLOW);
+    //tft.setTextSize(1);
+    //tft.print((char)pgm_read_byte(ssids + i));
+    //delay(100);
+    //tft.fillScreen(BLACK);
     i++;
   }
-  
+
   Serial.println();
   Serial.println("Started \\o/");
   Serial.println();
 }
 
+int x = 0;
+
+int ix = 0;
+int len = sizeof(ssids);
+
+
 void loop() {
+
   currentTime = millis();
 
   // send out SSIDs
@@ -227,7 +243,7 @@ void loop() {
     char tmp;
     int ssidsLen = strlen_P(ssids);
     bool sent = false;
-    
+
     // go to next channel
     nextChannel();
 
@@ -240,7 +256,7 @@ void loop() {
       } while (tmp != '\n' && j <= 32 && i + j < ssidsLen);
 
       uint8_t ssidLen = j - 1;
-      
+
       // set MAC address
       macAddr[5] = ssidNum;
       ssidNum++;
@@ -259,16 +275,16 @@ void loop() {
       beaconPacket[82] = wifi_channel;
 
       // send packet
-      if(appendSpaces){
-        for(int k=0;k<3;k++){
+      if (appendSpaces) {
+        for (int k = 0; k < 3; k++) {
           packetCounter += wifi_send_pkt_freedom(beaconPacket, packetSize, 0) == 0;
           delay(1);
         }
       }
-      
+
       // remove spaces
       else {
-        
+
         uint16_t tmpPacketSize = (packetSize - 32) + ssidLen; // calc size
         uint8_t* tmpPacket = new uint8_t[tmpPacketSize]; // create packet buffer
         memcpy(&tmpPacket[0], &beaconPacket[0], 38 + ssidLen); // copy first half of packet into buffer
@@ -276,7 +292,7 @@ void loop() {
         memcpy(&tmpPacket[38 + ssidLen], &beaconPacket[70], wpa2 ? 39 : 13); // copy second half of packet into buffer
 
         // send packet
-        for(int k=0;k<3;k++){
+        for (int k = 0; k < 3; k++) {
           packetCounter += wifi_send_pkt_freedom(tmpPacket, tmpPacketSize, 0) == 0;
           delay(1);
         }
@@ -295,4 +311,31 @@ void loop() {
     Serial.println(packetCounter);
     packetCounter = 0;
   }
+  if (x >= 1000) {
+
+    tft.setTextColor(YELLOW);
+    tft.setTextSize(1);
+    tft.print((char)pgm_read_byte(ssids + ix));
+    //delay(100);
+    ix++;
+    x = 0;
+
+    if (ix == 217) {
+      tft.fillScreen(BLACK);
+      tft.setCursor(0, 0);
+    }
+
+    if (ix == 456) {
+      tft.fillScreen(BLACK);
+      tft.setCursor(0, 0);
+    }
+
+    if (ix == 621) {
+      ix = 0;
+      tft.fillScreen(BLACK);
+      tft.setCursor(0, 0);
+    }
+  }
+
+  x++;
 }
